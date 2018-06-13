@@ -75,6 +75,8 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 			handleGo(s, m, res[1])
 		case "e", "elixir":
 			handleElixir(s, m, res[1])
+		case "n", "node", "js":
+			handleJS(s, m, res[1])
 		default:
 			s.ChannelMessageSend(m.ChannelID, fmt.Sprintf("Invalid language, found %s", res[0]))
 			return
@@ -91,7 +93,17 @@ func handleElixir(s *discordgo.Session, m *discordgo.MessageCreate, code string)
 		return
 	}
 
-	s.ChannelMessageSend(m.ChannelID, fmt.Sprintf("Compiled and ran:\n``` %s ```\n", res))
+	s.ChannelMessageSend(m.ChannelID, fmt.Sprintf("Compiled and ran:\n``` %s ```", res))
+}
+
+func handleJS(s *discordgo.Session, m *discordgo.MessageCreate, code string) {
+	res, err := ExecuteNodeWithTimeout(wrapelixircode(code), 10)
+	if err != nil {
+		s.ChannelMessageSend(m.ChannelID, err.Error())
+		return
+	}
+
+	s.ChannelMessageSend(m.ChannelID, fmt.Sprintf("Compiled and ran:\n``` %s ```", res))
 }
 
 func wrapelixircode(code string) string {
